@@ -30,16 +30,15 @@
     .shell{background:var(--surface);border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow);padding:24px}
     .top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap}
     .title{margin:0;font-size:32px;line-height:1.05}
-    .status{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;background:var(--primary-soft);color:var(--primary);font-size:12px;font-weight:700}
     .grid{display:grid;grid-template-columns:1fr;gap:20px}
     .card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
     .card h2{margin:0 0 16px;font-size:20px}
-    .input-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .input-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:18px}
     .input-row .field{margin-bottom:0}
     .field{display:grid;gap:8px;margin-bottom:16px}
     .field label{font-size:14px;font-weight:700}
     .field input,.field select{width:100%;padding:14px 15px;border:1px solid var(--border);border-radius:var(--radius-sm);background:#fff;font-size:16px}
-    .buttons{display:flex;gap:12px;flex-wrap:wrap}
+    .buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
     .btn{border:0;border-radius:999px;padding:13px 18px;font-size:14px;font-weight:800;cursor:pointer}
     .btn-primary{background:var(--primary);color:#fff}
     .btn-primary:hover{background:var(--primary-hover)}
@@ -51,16 +50,22 @@
     .metric-value{font-size:24px;font-weight:800;margin-top:6px}
     .rowline{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px}
     .muted{color:var(--muted);font-size:14px}
-    .table-wrap{overflow:visible;border:1px solid var(--border);border-radius:14px;background:#fff}
-    table{width:100%;border-collapse:collapse;table-layout:fixed}
+    .table-wrap{overflow:hidden;border:1px solid var(--border);border-radius:16px;background:#fff}
+    table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
     th,td{padding:8px 8px;border-bottom:1px solid var(--border);text-align:left;font-size:11px;word-break:break-word}
-    th{text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--surface)}
+    th{ text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--surface)}
+    thead th:first-child{border-top-left-radius:16px}
+    thead th:last-child{border-top-right-radius:16px}
+    tbody tr:last-child td:first-child{border-bottom-left-radius:16px}
+    tbody tr:last-child td:last-child{border-bottom-right-radius:16px}
+    tbody tr:last-child td{border-bottom:none}
     .center{text-align:center}
     .badge{display:inline-grid;place-items:center;min-width:32px;height:32px;padding:0 10px;border-radius:999px;font-weight:800}
     .badge-x{background:var(--warning-soft);color:var(--warning)}
     .badge-v{background:var(--success-soft);color:var(--success)}
     .badge-n{background:var(--primary-soft);color:var(--primary)}
     .empty{padding:20px;border:1px dashed var(--border);border-radius:14px;color:var(--muted);background:#fff}
+    .print-row{display:flex;justify-content:flex-end;margin-top:16px}
 
     @media (max-width:960px){
       .input-row{grid-template-columns:1fr}
@@ -73,7 +78,7 @@
     @media print {
       @page { size: A4 portrait; margin: 6mm; }
       body{background:#fff;font-size:9px}
-      .buttons,.status,.grid > .card:first-child{display:none !important}
+      .buttons,.grid > .card:first-child{display:none !important}
       .app{padding:0}
       .shell{box-shadow:none;border:none;padding:0}
       .card{break-inside:avoid;padding:6px;margin:0}
@@ -85,10 +90,11 @@
       .metric-label{font-size:8px}
       .rowline{margin-bottom:4px}
       .muted{font-size:9px}
-      .table-wrap{overflow:visible}
+      .table-wrap{overflow:hidden}
       table{table-layout:fixed}
       th,td{padding:3px 4px;font-size:7px;line-height:1.05}
       .badge{min-width:18px;height:18px;font-size:8px;padding:0 5px}
+      .print-row{display:none}
     }
   </style>
 </head>
@@ -99,7 +105,6 @@
         <div>
           <h1 class="title">Calculadora de planes de salud veterinarios</h1>
         </div>
-        <div class="status" id="status">Listo</div>
       </div>
 
       <div class="grid">
@@ -125,7 +130,6 @@
           </div>
           <div class="buttons">
             <button class="btn btn-primary" id="calcBtn" type="button">Calcular</button>
-            <button class="btn btn-secondary print-btn" id="printBtn" type="button" aria-label="Imprimir presupuesto">🖨️</button>
           </div>
         </section>
 
@@ -170,6 +174,10 @@
           </div>
 
           <div id="tableZone" class="empty"></div>
+
+          <div class="print-row">
+            <button class="btn btn-secondary print-btn" id="printBtn" type="button" aria-label="Imprimir presupuesto">🖨️</button>
+          </div>
         </section>
       </div>
     </div>
@@ -245,7 +253,6 @@
     };
 
     const $ = id => document.getElementById(id);
-    function setStatus(text){ $('status').textContent = text; }
     function toNum(v){ return Number(String(v ?? '').replace(',', '.')) || 0; }
     function formatCurrency(v){ return new Intl.NumberFormat('it-IT', { style:'currency', currency:'EUR' }).format(v || 0); }
     function getPesoTipo(peso){ const row = CONFIG.pesos.find(r => peso >= r.min && peso <= r.max); return row ? row.tipo : ''; }
@@ -257,8 +264,8 @@
       const plan = $('plan').value;
       const pesoTipo = getPesoTipo(peso);
 
-      if (!peso || peso <= 0) { setStatus('Introduce un peso válido'); return; }
-      if (!pesoTipo) { setStatus('Peso fuera de rango'); return; }
+      if (!peso || peso <= 0) return;
+      if (!pesoTipo) return;
 
       const planConfig = CONFIG.planes[plan] || {};
       let total = 0;
@@ -306,8 +313,6 @@
           </table>
         </div>
       `;
-
-      setStatus('Cálculo actualizado');
     }
 
     function printQuote(){ window.print(); }
