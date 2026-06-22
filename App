@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de planes de salud veterinarios</title>
+  <style>
+    :root {
+      --bg:#f7f6f2;
+      --surface:#f9f8f5;
+      --surface-2:#fbfbf9;
+      --border:#d4d1ca;
+      --text:#28251d;
+      --muted:#7a7974;
+      --primary:#01696f;
+      --primary-hover:#0c4e54;
+      --primary-soft:rgba(1,105,111,.08);
+      --success:#437a22;
+      --success-soft:rgba(67,122,34,.12);
+      --warning:#964219;
+      --warning-soft:rgba(150,66,25,.12);
+      --radius:18px;
+      --radius-sm:12px;
+      --shadow:0 10px 30px rgba(0,0,0,.06);
+    }
+
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .app{max-width:1200px;margin:0 auto;padding:24px}
+    .shell{background:var(--surface);border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow);padding:24px}
+    .top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap}
+    .title{margin:0;font-size:32px;line-height:1.05}
+    .status{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;background:var(--primary-soft);color:var(--primary);font-size:12px;font-weight:700}
+    .grid{display:grid;grid-template-columns:1fr;gap:20px}
+    .card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+    .card h2{margin:0 0 16px;font-size:20px}
+    .input-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .input-row .field{margin-bottom:0}
+    .field{display:grid;gap:8px;margin-bottom:16px}
+    .field label{font-size:14px;font-weight:700}
+    .field input,.field select{width:100%;padding:14px 15px;border:1px solid var(--border);border-radius:var(--radius-sm);background:#fff;font-size:16px}
+    .buttons{display:flex;gap:12px;flex-wrap:wrap}
+    .btn{border:0;border-radius:999px;padding:13px 18px;font-size:14px;font-weight:800;cursor:pointer}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-hover)}
+    .btn-secondary{background:#fff;border:1px solid var(--border);color:var(--text)}
+    .print-btn{width:48px;height:48px;display:inline-grid;place-items:center;font-size:22px;line-height:1;padding:0}
+    .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:16px}
+    .metric{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px}
+    .metric-label{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700}
+    .metric-value{font-size:24px;font-weight:800;margin-top:6px}
+    .rowline{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+    .muted{color:var(--muted);font-size:14px}
+    .table-wrap{overflow:visible;border:1px solid var(--border);border-radius:14px;background:#fff}
+    table{width:100%;border-collapse:collapse;table-layout:fixed}
+    th,td{padding:8px 8px;border-bottom:1px solid var(--border);text-align:left;font-size:11px;word-break:break-word}
+    th{text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--surface)}
+    .center{text-align:center}
+    .badge{display:inline-grid;place-items:center;min-width:32px;height:32px;padding:0 10px;border-radius:999px;font-weight:800}
+    .badge-x{background:var(--warning-soft);color:var(--warning)}
+    .badge-v{background:var(--success-soft);color:var(--success)}
+    .badge-n{background:var(--primary-soft);color:var(--primary)}
+    .empty{padding:20px;border:1px dashed var(--border);border-radius:14px;color:var(--muted);background:#fff}
+
+    @media (max-width:960px){
+      .input-row{grid-template-columns:1fr}
+      .metrics{grid-template-columns:1fr}
+      .title{font-size:28px}
+      .shell{padding:16px}
+      .app{padding:16px}
+    }
+
+    @media print {
+      @page { size: A4 portrait; margin: 6mm; }
+      body{background:#fff;font-size:9px}
+      .buttons,.status,.grid > .card:first-child{display:none !important}
+      .app{padding:0}
+      .shell{box-shadow:none;border:none;padding:0}
+      .card{break-inside:avoid;padding:6px;margin:0}
+      h1.title{font-size:15px;margin-bottom:2px}
+      h2{font-size:12px;margin:0 0 6px}
+      .metrics{gap:4px;margin-bottom:6px}
+      .metric{padding:6px}
+      .metric-value{font-size:11px;margin-top:2px}
+      .metric-label{font-size:8px}
+      .rowline{margin-bottom:4px}
+      .muted{font-size:9px}
+      .table-wrap{overflow:visible}
+      table{table-layout:fixed}
+      th,td{padding:3px 4px;font-size:7px;line-height:1.05}
+      .badge{min-width:18px;height:18px;font-size:8px;padding:0 5px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="shell">
+      <div class="top">
+        <div>
+          <h1 class="title">Calculadora de planes de salud veterinarios</h1>
+        </div>
+        <div class="status" id="status">Listo</div>
+      </div>
+
+      <div class="grid">
+        <section class="card">
+          <h2>Input</h2>
+          <div class="input-row">
+            <div class="field">
+              <label for="nombrePerro">Nombre del perro</label>
+              <input id="nombrePerro" type="text" placeholder="Es. Luna">
+            </div>
+            <div class="field">
+              <label for="peso">Peso del perro (kg)</label>
+              <input id="peso" type="number" min="0" step="0.1" placeholder="Es. 12.5">
+            </div>
+            <div class="field">
+              <label for="plan">Plan</label>
+              <select id="plan">
+                <option value="Starter">Starter</option>
+                <option value="Standard">Standard</option>
+                <option value="PRO">PRO</option>
+              </select>
+            </div>
+          </div>
+          <div class="buttons">
+            <button class="btn btn-primary" id="calcBtn" type="button">Calcular</button>
+            <button class="btn btn-secondary print-btn" id="printBtn" type="button" aria-label="Imprimir presupuesto">🖨️</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="rowline">
+            <h2 style="margin:0;">Resultado</h2>
+            <div class="muted" id="nombrePerroRes">Nombre del perro: —</div>
+          </div>
+
+          <div class="rowline">
+            <div class="muted" id="fasciaPeso">Franja de peso: —</div>
+          </div>
+
+          <div class="metrics">
+            <div class="metric">
+              <div class="metric-label">Precio anual</div>
+              <div class="metric-value" id="precioAnual">0,00&nbsp;€</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Precio mensual</div>
+              <div class="metric-value" id="precioMensual">0,00&nbsp;€</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Plan seleccionado</div>
+              <div class="metric-value" id="planActual2">Starter</div>
+            </div>
+          </div>
+
+          <div class="metrics">
+            <div class="metric">
+              <div class="metric-label">Desc. cirugía</div>
+              <div class="metric-value" id="descCirugia">5%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Desc. diagnóstica</div>
+              <div class="metric-value" id="descDiagnostica">5%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Desc. tienda</div>
+              <div class="metric-value" id="descTienda">3%</div>
+            </div>
+          </div>
+
+          <div id="tableZone" class="empty"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      pesos: [
+        { tipo: 'Perro_Pequeño', min: 0, max: 10 },
+        { tipo: 'Perro_Mediano', min: 11, max: 20 },
+        { tipo: 'Perro_Grande', min: 21, max: 35 },
+        { tipo: 'Perro_Gigante', min: 36, max: 999 }
+      ],
+      servicios: [
+        { servicio: 'Corte de uñas', precios: { Perro_Pequeño: 0, Perro_Mediano: 0, Perro_Grande: 0, Perro_Gigante: 0 } },
+        { servicio: 'Control del peso', precios: { Perro_Pequeño: 0, Perro_Mediano: 0, Perro_Grande: 0, Perro_Gigante: 0 } },
+        { servicio: 'Chequeo pulgas', precios: { Perro_Pequeño: 0, Perro_Mediano: 0, Perro_Grande: 0, Perro_Gigante: 0 } },
+        { servicio: 'Revision dental', precios: { Perro_Pequeño: 0, Perro_Mediano: 0, Perro_Grande: 0, Perro_Gigante: 0 } },
+        { servicio: 'Vacunas', precios: { Perro_Pequeño: 40, Perro_Mediano: 40, Perro_Grande: 40, Perro_Gigante: 40 } },
+        { servicio: 'Consulta', precios: { Perro_Pequeño: 42, Perro_Mediano: 42, Perro_Grande: 42, Perro_Gigante: 42 } },
+        { servicio: 'Desparasitacion interna', precios: { Perro_Pequeño: 60, Perro_Mediano: 70, Perro_Grande: 80, Perro_Gigante: 90 } },
+        { servicio: 'Desparasitacion externa', precios: { Perro_Pequeño: 60, Perro_Mediano: 70, Perro_Grande: 80, Perro_Gigante: 90 } },
+        { servicio: 'Analitica sangre', precios: { Perro_Pequeño: 60, Perro_Mediano: 60, Perro_Grande: 60, Perro_Gigante: 60 } },
+        { servicio: 'Estudio radiografico torax', precios: { Perro_Pequeño: 50, Perro_Mediano: 50, Perro_Grande: 50, Perro_Gigante: 50 } },
+        { servicio: 'Eco abdomen', precios: { Perro_Pequeño: 50, Perro_Mediano: 50, Perro_Grande: 50, Perro_Gigante: 50 } }
+      ],
+      planes: {
+        Starter: {
+          'Corte de uñas': 1,
+          'Control del peso': 1,
+          'Chequeo pulgas': 1,
+          'Revision dental': 1,
+          'Vacunas': 1,
+          'Consulta': 1,
+          'Desparasitacion interna': 1,
+          'Desparasitacion externa': 1,
+          'Analitica sangre': 0,
+          'Estudio radiografico torax': 0,
+          'Eco abdomen': 0
+        },
+        Standard: {
+          'Corte de uñas': 1,
+          'Control del peso': 1,
+          'Chequeo pulgas': 1,
+          'Revision dental': 1,
+          'Vacunas': 1,
+          'Consulta': 2,
+          'Desparasitacion interna': 1,
+          'Desparasitacion externa': 1,
+          'Analitica sangre': 1,
+          'Estudio radiografico torax': 0,
+          'Eco abdomen': 0
+        },
+        PRO: {
+          'Corte de uñas': 1,
+          'Control del peso': 1,
+          'Chequeo pulgas': 1,
+          'Revision dental': 1,
+          'Vacunas': 1,
+          'Consulta': 3,
+          'Desparasitacion interna': 1,
+          'Desparasitacion externa': 1,
+          'Analitica sangre': 1,
+          'Estudio radiografico torax': 1,
+          'Eco abdomen': 1
+        }
+      },
+      descuentos: {
+        Starter: { cirugia: '5%', diagnostica: '5%', tienda: '3%' },
+        Standard: { cirugia: '10%', diagnostica: '7%', tienda: '4%' },
+        PRO: { cirugia: '15%', diagnostica: '10%', tienda: '5%' }
+      }
+    };
+
+    const $ = id => document.getElementById(id);
+    function setStatus(text){ $('status').textContent = text; }
+    function toNum(v){ return Number(String(v ?? '').replace(',', '.')) || 0; }
+    function formatCurrency(v){ return new Intl.NumberFormat('it-IT', { style:'currency', currency:'EUR' }).format(v || 0); }
+    function getPesoTipo(peso){ const row = CONFIG.pesos.find(r => peso >= r.min && peso <= r.max); return row ? row.tipo : ''; }
+    function symbolBadge(qty){ if (qty === 0) return '<span class="badge badge-x">X</span>'; if (qty === 1) return '<span class="badge badge-v">V</span>'; return '<span class="badge badge-n">' + qty + '</span>'; }
+
+    function calculate(){
+      const nombrePerro = ($('nombrePerro').value || '').trim();
+      const peso = toNum($('peso').value);
+      const plan = $('plan').value;
+      const pesoTipo = getPesoTipo(peso);
+
+      if (!peso || peso <= 0) { setStatus('Introduce un peso válido'); return; }
+      if (!pesoTipo) { setStatus('Peso fuera de rango'); return; }
+
+      const planConfig = CONFIG.planes[plan] || {};
+      let total = 0;
+
+      const rows = CONFIG.servicios.map(s => {
+        const qty = toNum(planConfig[s.servicio]);
+        const unitPrice = toNum((s.precios || {})[pesoTipo]);
+        const importe = qty * unitPrice;
+        total += importe;
+        return { servicio: s.servicio, qty, unitPrice, importe };
+      });
+
+      const desc = CONFIG.descuentos[plan] || {};
+
+      $('nombrePerroRes').textContent = 'Nombre del perro: ' + (nombrePerro || '—');
+      $('fasciaPeso').textContent = 'Franja de peso: ' + pesoTipo;
+      $('precioAnual').textContent = formatCurrency(total);
+      $('precioMensual').textContent = formatCurrency(total / 12);
+      $('planActual2').textContent = plan;
+      $('descCirugia').textContent = desc.cirugia || '—';
+      $('descDiagnostica').textContent = desc.diagnostica || '—';
+      $('descTienda').textContent = desc.tienda || '—';
+
+      $('tableZone').innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Servicio</th>
+                <th class="center">${plan}</th>
+                <th class="center">Precio unitario</th>
+                <th class="center">Importe</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => `
+                <tr>
+                  <td>${r.servicio}</td>
+                  <td class="center">${symbolBadge(r.qty)}</td>
+                  <td class="center">${r.qty ? formatCurrency(r.unitPrice) : '—'}</td>
+                  <td class="center">${r.qty ? formatCurrency(r.importe) : '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      setStatus('Cálculo actualizado');
+    }
+
+    function printQuote(){ window.print(); }
+
+    $('calcBtn').addEventListener('click', calculate);
+    $('printBtn').addEventListener('click', printQuote);
+  </script>
+</body>
+</html>
